@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <utility>
+#include <array>
 #include "mxl/enum.h"
 
 /***************************************************************************************/
@@ -97,7 +98,7 @@ constexpr bool is_valid_enum(typename std::underlying_type<E>::type v)
 // }
 
 template<typename E, typename std::underlying_type<E>::type... N>
-constexpr size_t enum_length_impl_neg(
+constexpr auto enum_array_impl_neg(
     std::integer_sequence<typename std::underlying_type<E>::type, N...>)
 {
     return ((is_valid_enum<E>((-static_cast<typename std::make_signed<
@@ -108,24 +109,42 @@ constexpr size_t enum_length_impl_neg(
             ...);
 }
 
+template<size_t N, size_t... I>
+constexpr auto make_array_impl(const std::array<int, sizeof...(I)>& a,
+                               std::index_sequence<I...>)
+{
+    static_assert(N >= sizeof...(I), "");
+    return std::array<int, N>{ a[ I ]... };
+}
+
+template<size_t N>
+constexpr auto operator<<(const std::array<int, N>& a, int x)
+{
+    std::array<int, N + 1> b = make_array_impl<N + 1>(a, std::make_index_sequence<N>{});
+    b[ N ] = x;
+    return b;
+}
+
 template<typename E, typename std::underlying_type<E>::type... N>
-constexpr size_t enum_length_impl(
+constexpr auto enum_array_impl(
     std::integer_sequence<typename std::underlying_type<E>::type, N...>)
 {
-    return ((is_valid_enum<E>(N) ? 1 : 0) + ...);
+    std::array<int, 0> a;
+    return ((is_valid_enum<E>(N) ? N : 0) << ...);
 }
 
 template<typename E>
-constexpr size_t enum_length()
+constexpr auto enum_array()
 {
     using enum_type = typename std::underlying_type<E>::type;
     static_assert(1 == sizeof(enum_type), "Only enumerations of 1-byte size supported");
     constexpr enum_type kMax = (1 << ((sizeof(enum_type) * 8) - 1)) - 1;
     std::make_integer_sequence<enum_type, kMax> seq{};
-    size_t size = enum_length_impl<E>(seq) + (is_valid_enum<E>(kMax) ? 1 : 0);
-    if (std::is_signed<enum_type>::value)
-        size += enum_length_impl_neg<E>(seq) + (is_valid_enum<E>(kMax) ? 1 : 0);
-    return size;
+    // size_t size = enum_array_impl<E>(seq) + (is_valid_enum<E>(kMax) ? 1 : 0);
+    auto array = enum_array_impl<E>(seq);
+    // if (std::is_signed<enum_type>::value)
+    //     size += enum_array_impl_neg<E>(seq) + (is_valid_enum<E>(kMax) ? 1 : 0);
+    return array;
 }
 
 int main()
@@ -147,7 +166,14 @@ int main()
 
     // std::cout << "foo: " << mxl::make_enum(foo(Error::Ok)).name() << std::endl;
 
-    std::cout << "enum_length: " << enum_length<Error>() << std::endl;
+    std::array<int, 2> a{4, 8};
+    auto b = a << 1;
+    auto c = b << -9;
+    for (auto i : c)
+        std::cout << i << " ";
 
+    auto ea = enum_array<Error>();
+
+    std::cout << std::endl;
     return 0;
 }
