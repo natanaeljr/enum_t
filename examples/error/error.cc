@@ -90,31 +90,35 @@ constexpr auto enum_make_array(const std::array<int, S>& a)
     return a;
 }
 
-template<typename E, size_t S, int I, int... N>
-constexpr auto enum_make_array(const std::array<int, S>& a) ->
-    typename std::enable_if<!is_enum_valid<E, I>::value, std::array<int, S>>::type
+template<typename E, size_t S, int V, int... N,
+         typename std::enable_if<is_enum_valid<E, V>::value, size_t>::type x = 0>
+constexpr auto enum_make_array(const std::array<int, S>& a);
+
+template<typename E, size_t S, int V, int... N,
+         typename std::enable_if<!is_enum_valid<E, V>::value, size_t>::type x = 0>
+constexpr auto enum_make_array(const std::array<int, S>& a)
 {
     return enum_make_array<E, S, N...>(a);
 }
 
-template<typename E, size_t S, int I, int... N>
-constexpr auto enum_make_array(const std::array<int, S>& a) ->
-    typename std::enable_if<is_enum_valid<E, I>::value, std::array<int, S + 1>>::type
+template<typename E, size_t S, int V, int... N,
+         typename std::enable_if<is_enum_valid<E, V>::value, size_t>::type x>
+constexpr auto enum_make_array(const std::array<int, S>& a)
 {
     return enum_make_array<E, S + 1, N...>(
-        array_new_add(I, a, std::make_index_sequence<S>{}));
+        array_new_add(V, a, std::make_index_sequence<S>{}));
 }
 
 template<typename E, int... N>
 constexpr auto resolve_impl(std::integer_sequence<int, N...>)
 {
-    return enum_make_array<E, N...>(std::array<int, 0>{});
+    return enum_make_array<E, 0, N...>(std::array<int, 0>{});
 }
 
 template<typename E>
 constexpr auto resolve()
 {
-    return resolve_impl<E>(std::make_integer_sequence<int, 127>{});
+    return resolve_impl<E>(std::make_integer_sequence<int, 128>{});
 }
 
 auto x = resolve<Error>();
