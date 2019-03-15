@@ -160,6 +160,31 @@ constexpr auto make_enum_array()
     return array_append(pos_enum_array, neg_enum_array);
 }
 
+template<typename E, int V, size_t S>
+constexpr auto make_enum_array17(const std::array<int, S>& a)
+{
+    if constexpr (V != 0) {
+        if constexpr (!is_enum_valid<E, V>::value)
+            return make_enum_array17<E, V - 1>(a);
+        if constexpr (is_enum_valid<E, V>::value)
+            return make_enum_array17<E, V - 1>(array_push_front(a, V));
+    }
+    else {
+        if constexpr (!is_enum_valid<E, V>::value)
+            return a;
+        else if constexpr (is_enum_valid<E, V>::value)
+            return array_push_front(a, V);
+    }
+}
+
+template<typename E>
+constexpr auto make_enum_array17()
+{
+    return make_enum_array17<E, 255>(std::array<int, 0>{});
+}
+
+auto y = make_enum_array17<Error>();
+
 // template<typename E, int... N>
 // constexpr auto enum_compose_impl(int I, )
 // {
@@ -273,7 +298,7 @@ int main()
     // std::cout << "foo: " << mxl::make_enum(foo(Error::Ok)).name() << std::endl;
 
     auto x = make_enum_array<Error>();
-    for (auto i : x)
+    for (auto i : y)
         std::cout << i << " ";
 
     std::cout << std::endl;
