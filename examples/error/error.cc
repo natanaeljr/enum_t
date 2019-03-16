@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <utility>
+#include <limits>
 #include <array>
 #include "mxl/enum.h"
 
@@ -16,12 +17,12 @@
 /**
  * Error code enumeration
  */
-enum class Error : unsigned char {
+enum class Error : char {
     Ok = 0,
     Fail = 2,
-    Timeout = 3,
+    Timeout = -1,
     Internal = 127,
-    InvalidParam = 255,
+    InvalidParam = -128,
 };
 
 /***************************************************************************************/
@@ -63,40 +64,51 @@ constexpr const char* mxl::Enum<Error>::name() const noexcept
 
 /***************************************************************************************/
 
-template<typename E, int V>
+template<typename E, typename std::underlying_type<E>::type V>
 struct is_enum_valid {
-    inline static constexpr const bool value =
-        mxl::Enum<E>(static_cast<E>(V)).name() != nullptr;
+    inline static constexpr const bool value = mxl::Enum<E>(E(V)).name() != nullptr;
 };
 
-template<size_t S1, size_t S2, size_t... I1, size_t... I2>
-constexpr auto array_append_impl(const std::array<int, S1>& a,
-                                 const std::array<int, S2>& b, std::index_sequence<I1...>,
-                                 std::index_sequence<I2...>)
+template<typename T, size_t S1, size_t S2, size_t... I1, size_t... I2>
+constexpr auto array_append_impl(const std::array<T, S1>& a, const std::array<T, S2>& b,
+                                 std::index_sequence<I1...>, std::index_sequence<I2...>)
 {
-    return std::array<int, S1 + S2>{ a[ I1 ]..., b[ I2 ]... };
+    return std::array<T, S1 + S2>{ a[I1]..., b[I2]... };
 }
 
-template<size_t S1, size_t S2>
-constexpr auto array_append(const std::array<int, S1>& a, const std::array<int, S2>& b)
+template<typename T, size_t S1, size_t S2>
+constexpr auto array_append(const std::array<T, S1>& a, const std::array<T, S2>& b)
 {
     return array_append_impl(a, b, std::make_index_sequence<S1>{},
                              std::make_index_sequence<S2>{});
 }
 
-template<class T, size_t S, size_t... I>
+template<typename T, size_t S1, size_t S2>
+constexpr auto operator<<(const std::array<T, S1>& a, const std::array<T, S2>& b)
+{
+    return array_append(a, b);
+}
+
+template<typename T, size_t S, size_t... I>
 constexpr auto array_push_front_impl(const std::array<T, S>& a, T x,
                                      std::index_sequence<I...>)
 {
-    return std::array<T, S + 1>{ x, a[ I ]... };
+    return std::array<T, S + 1>{ x, a[I]... };
 }
 
-template<class T, size_t S>
-constexpr auto array_push_front(const std::array<T, S>& a, int x)
+template<typename T, size_t S>
+constexpr auto array_push_front(const std::array<T, S>& a, T x)
 {
     return array_push_front_impl(a, x, std::make_index_sequence<S>{});
 }
 
+template<typename T, size_t S>
+constexpr auto operator<<(const std::array<T, S>& a, T x)
+{
+    return array_push_front(a, x);
+}
+
+/*
 // Prototype 1
 template<
     typename E, int V, int D, size_t S,
@@ -159,31 +171,52 @@ constexpr auto make_enum_array()
     auto neg_enum_array = make_enum_array<E, -128, 1>(std::array<int, 0>{});
     return array_append(pos_enum_array, neg_enum_array);
 }
+*/
 
-template<typename E, int V, size_t S>
-constexpr auto make_enum_array17(const std::array<int, S>& a)
+#if (__cplusplus >= 201400L)
+
+#endif /* #if (__cplusplus >= 201400L) */
+
+/***************************************************************************************/
+
+#if (__cplusplus >= 201700L)
+
+template<typename E, typename std::underlying_type<E>::type V, size_t S>
+constexpr auto make_enum_array17_impl(const std::array<mxl::Enum<E>, S>& a)
 {
-    if constexpr (V != 0) {
+    if constexpr (V != 0 && V != -1) {
         if constexpr (!is_enum_valid<E, V>::value)
-            return make_enum_array17<E, V - 1>(a);
+            return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a);
         if constexpr (is_enum_valid<E, V>::value)
-            return make_enum_array17<E, V - 1>(array_push_front(a, V));
+            return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a
+                                                                   << mxl::Enum<E>(E(V)));
     }
     else {
         if constexpr (!is_enum_valid<E, V>::value)
             return a;
         else if constexpr (is_enum_valid<E, V>::value)
-            return array_push_front(a, V);
+            return a << mxl::Enum<E>(E(V));
     }
 }
 
 template<typename E>
 constexpr auto make_enum_array17()
 {
-    return make_enum_array17<E, 255>(std::array<int, 0>{});
+    if constexpr (std::is_signed<typename std::underlying_type<E>::type>::value) {
+        using enum_numeric = std::numeric_limits<char>;
+        return array_append(
+            make_enum_array17_impl<E, enum_numeric::min()>(std::array<mxl::Enum<E>, 0>{}),
+            make_enum_array17_impl<E, enum_numeric::max()>(
+                std::array<mxl::Enum<E>, 0>{}));
+    }
+    else {
+        using enum_numeric = std::numeric_limits<unsigned char>;
+        return make_enum_array17_impl<E, enum_numeric::max()>(
+            std::array<mxl::Enum<E>, 0>{});
+    }
 }
 
-auto y = make_enum_array17<Error>();
+#endif /* #if (__cplusplus >= 201700L) */
 
 // template<typename E, int... N>
 // constexpr auto enum_compose_impl(int I, )
@@ -296,10 +329,14 @@ int main()
     // std::cout << "sizeof(mxl::Enum<Error>): " << sizeof(mxl::Enum<Error>) << std::endl;
 
     // std::cout << "foo: " << mxl::make_enum(foo(Error::Ok)).name() << std::endl;
+#if (__cplusplus >= 201700L)
+    auto x = make_enum_array17<Error>();
+#elif (__cplusplus >= 201700L)
+    auto x = make_enum_array14<Error>();
+#endif
 
-    auto x = make_enum_array<Error>();
-    for (auto i : y)
-        std::cout << i << " ";
+    for (auto e : x)
+        std::cout << e.name() << ": " << (int) e.value() << '\n';
 
     std::cout << std::endl;
     return 0;
