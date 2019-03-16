@@ -7,9 +7,6 @@
  */
 
 #include <iostream>
-#include <utility>
-#include <limits>
-#include <array>
 #include "mxl/enum.h"
 
 /***************************************************************************************/
@@ -28,7 +25,7 @@ enum class Error : char {
 /***************************************************************************************/
 
 template<>
-constexpr const char* mxl::Enum<Error>::name() const noexcept
+constexpr const char* mxl::enum_t<Error>::name() const
 {
     switch (enum_) {
         case Error::Ok: return "Ok";
@@ -63,50 +60,6 @@ constexpr const char* mxl::Enum<Error>::name() const noexcept
 // }
 
 /***************************************************************************************/
-
-template<typename E, typename std::underlying_type<E>::type V>
-struct is_enum_valid {
-    inline static constexpr const bool value = mxl::Enum<E>(E(V)).name() != nullptr;
-};
-
-template<typename T, size_t S1, size_t S2, size_t... I1, size_t... I2>
-constexpr auto array_append_impl(const std::array<T, S1>& a, const std::array<T, S2>& b,
-                                 std::index_sequence<I1...>, std::index_sequence<I2...>)
-{
-    return std::array<T, S1 + S2>{ a[I1]..., b[I2]... };
-}
-
-template<typename T, size_t S1, size_t S2>
-constexpr auto array_append(const std::array<T, S1>& a, const std::array<T, S2>& b)
-{
-    return array_append_impl(a, b, std::make_index_sequence<S1>{},
-                             std::make_index_sequence<S2>{});
-}
-
-template<typename T, size_t S1, size_t S2>
-constexpr auto operator<<(const std::array<T, S1>& a, const std::array<T, S2>& b)
-{
-    return array_append(a, b);
-}
-
-template<typename T, size_t S, size_t... I>
-constexpr auto array_push_front_impl(const std::array<T, S>& a, T x,
-                                     std::index_sequence<I...>)
-{
-    return std::array<T, S + 1>{ x, a[I]... };
-}
-
-template<typename T, size_t S>
-constexpr auto array_push_front(const std::array<T, S>& a, T x)
-{
-    return array_push_front_impl(a, x, std::make_index_sequence<S>{});
-}
-
-template<typename T, size_t S>
-constexpr auto operator<<(const std::array<T, S>& a, T x)
-{
-    return array_push_front(a, x);
-}
 
 /*
 // Prototype 1
@@ -172,51 +125,6 @@ constexpr auto make_enum_array()
     return array_append(pos_enum_array, neg_enum_array);
 }
 */
-
-#if (__cplusplus >= 201400L)
-
-#endif /* #if (__cplusplus >= 201400L) */
-
-/***************************************************************************************/
-
-#if (__cplusplus >= 201700L)
-
-template<typename E, typename std::underlying_type<E>::type V, size_t S>
-constexpr auto make_enum_array17_impl(const std::array<mxl::Enum<E>, S>& a)
-{
-    if constexpr (V != 0 && V != -1) {
-        if constexpr (!is_enum_valid<E, V>::value)
-            return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a);
-        if constexpr (is_enum_valid<E, V>::value)
-            return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a
-                                                                   << mxl::Enum<E>(E(V)));
-    }
-    else {
-        if constexpr (!is_enum_valid<E, V>::value)
-            return a;
-        else if constexpr (is_enum_valid<E, V>::value)
-            return a << mxl::Enum<E>(E(V));
-    }
-}
-
-template<typename E>
-constexpr auto make_enum_array17()
-{
-    if constexpr (std::is_signed<typename std::underlying_type<E>::type>::value) {
-        using enum_numeric = std::numeric_limits<char>;
-        return array_append(
-            make_enum_array17_impl<E, enum_numeric::min()>(std::array<mxl::Enum<E>, 0>{}),
-            make_enum_array17_impl<E, enum_numeric::max()>(
-                std::array<mxl::Enum<E>, 0>{}));
-    }
-    else {
-        using enum_numeric = std::numeric_limits<unsigned char>;
-        return make_enum_array17_impl<E, enum_numeric::max()>(
-            std::array<mxl::Enum<E>, 0>{});
-    }
-}
-
-#endif /* #if (__cplusplus >= 201700L) */
 
 // template<typename E, int... N>
 // constexpr auto enum_compose_impl(int I, )
@@ -329,14 +237,29 @@ int main()
     // std::cout << "sizeof(mxl::Enum<Error>): " << sizeof(mxl::Enum<Error>) << std::endl;
 
     // std::cout << "foo: " << mxl::make_enum(foo(Error::Ok)).name() << std::endl;
-#if (__cplusplus >= 201700L)
-    auto x = make_enum_array17<Error>();
-#elif (__cplusplus >= 201700L)
-    auto x = make_enum_array14<Error>();
-#endif
 
-    for (auto e : x)
-        std::cout << e.name() << ": " << (int) e.value() << '\n';
+    constexpr auto _iev = mxl::is_enum_valid<Error, 5>::value;
+
+    constexpr auto _e1 = mxl::enum_t<Error>(Error::Ok);
+    constexpr auto _e2 = mxl::make_enum(Error::Ok);
+    mxl::enum_t<Error> _e3 = mxl::enum_t(Error::Timeout);
+    mxl::enum_t<Error> _e4 = mxl::make_enum(Error::Timeout);
+    mxl::enum_t<Error> _e5{ Error::Fail };
+
+    constexpr auto _emin = mxl::enum_t<Error>::values::min();
+    constexpr auto _emax = mxl::enum_t<Error>::values::max();
+    constexpr auto _evc = mxl::enum_t<Error>::values::count();
+    constexpr auto _eva = mxl::enum_t<Error>::values::array();
+
+    std::cout << "=== Error ===" << '\n';
+
+    std::cout << "Count: " << _evc << '\n';
+    std::cout << "Min: " << (int) _emin.value() << '\n';
+    std::cout << "Max: " << (int) _emax.value() << '\n';
+
+    std::cout << "Values:" << '\n';
+    for (auto e : _eva)
+        std::cout << "  " << e.name() << ": " << (int) e.value() << '\n';
 
     std::cout << std::endl;
     return 0;
