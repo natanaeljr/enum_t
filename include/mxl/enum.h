@@ -89,10 +89,13 @@ class enum_t final {
     enum_type enum_;
 };
 
+/**
+ * \brief  Default implemetation for non specialized implementations.
+ * \return nullptr
+ */
 template<typename E>
 constexpr const char* enum_t<E>::name() const
 {
-    static_assert("Enum name function not implemented");
     return nullptr;
 }
 
@@ -150,6 +153,19 @@ constexpr auto array_push_front(const std::array<T, S>& a, T x)
     return array_push_front_impl(a, x, std::make_index_sequence<S>{});
 }
 
+template<typename T, size_t S, size_t... I>
+constexpr auto array_push_back_impl(const std::array<T, S>& a, T x,
+                                    std::index_sequence<I...>)
+{
+    return std::array<T, S + 1>{ a[I]..., x };
+}
+
+template<typename T, size_t S>
+constexpr auto array_push_back(const std::array<T, S>& a, T x)
+{
+    return array_push_back_impl(a, x, std::make_index_sequence<S>{});
+}
+
 /***************************************************************************************/
 
 #if (__cplusplus >= 201700L)
@@ -162,13 +178,15 @@ constexpr auto make_enum_array17_impl(const std::array<mxl::enum_t<E>, S>& a)
             return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a);
         if constexpr (is_enum_valid<E, V>::value)
             return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(
-                array_push_front(a, mxl::enum_t<E>(E(V))));
+                V < 0 ? array_push_back(a, mxl::enum_t<E>(E(V)))
+                      : array_push_front(a, mxl::enum_t<E>(E(V))));
     }
     else {
         if constexpr (!is_enum_valid<E, V>::value)
             return a;
         else if constexpr (is_enum_valid<E, V>::value)
-            return array_push_front(a, mxl::enum_t<E>(E(V)));
+            return V < 0 ? array_push_back(a, mxl::enum_t<E>(E(V)))
+                         : array_push_front(a, mxl::enum_t<E>(E(V)));
     }
 }
 
@@ -189,10 +207,26 @@ constexpr auto make_enum_array17()
     }
 }
 
+template<typename E>
+inline constexpr auto make_enum_array()
+{
+    return make_enum_array17<E>();
+}
+
 /***************************************************************************************/
 #elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
 
-// TODO: C++14 support
+template<typename E>
+constexpr auto make_enum_array14()
+{
+    return std::array<mxl::enum<E>, 0>{};
+}
+
+template<typename E>
+inline constexpr auto make_enum_array()
+{
+    return make_enum_array14<E>();
+}
 
 /***************************************************************************************/
 #endif                         /* #elif (__cplusplus >= 201400L) */
@@ -204,7 +238,7 @@ constexpr auto make_enum_array17()
 template<typename E>
 class enum_t<E>::values final {
    private:
-    static constexpr const auto array_ = internal::make_enum_array17<E>();
+    static constexpr const auto array_ = internal::make_enum_array<E>();
 
    public:
     using array_type = decltype(array_);
@@ -214,21 +248,31 @@ class enum_t<E>::values final {
 
     static constexpr array_type array() { return array_; }
     static constexpr size_type count() { return array_.size(); }
-    static constexpr mxl_enum_type min() { return array_.front(); }
-    static constexpr mxl_enum_type max() { return array_.back(); }
+    static constexpr mxl_enum_type min()
+    {
+        return count() ? array_.front() : mxl_enum_type{ 0 };
+    }
+    static constexpr mxl_enum_type max()
+    {
+        return count() ? array_.back() : mxl_enum_type{ 0 };
+    }
 
     constexpr operator array_type() const { return array_; }
     constexpr array_type operator()() const { return array_; }
 };
 
 /***************************************************************************************/
-
+/**
+ * More Library Internals
+ */
 namespace internal {
 
 template<typename E, std::size_t S>
 constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
 {
-    if (S <= 1)
+    if (S == 0)
+        return false;
+    else if (S == 1)
         return true;
     for (auto i = a.begin() + 1; i != a.end(); ++i)
         if (i->value() - 1 != (i - 1)->value())
@@ -260,9 +304,12 @@ constexpr auto is_enum_negative(const std::array<mxl::enum_t<E>, S>& a)
 
 } /* namespace internal */
 
+/**
+ * Logical Traits
+ */
 template<typename E>
 struct is_enum_empty {
-    static constexpr const bool value = (mxl::enum_t<E>::values::array().size() == 0);
+    static constexpr const bool value = (mxl::enum_t<E>::values::count() == 0);
 };
 
 template<typename E>

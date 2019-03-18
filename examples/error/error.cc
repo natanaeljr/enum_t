@@ -24,18 +24,18 @@ enum class Error : char {
 
 /***************************************************************************************/
 
-template<>
-constexpr const char* mxl::enum_t<Error>::name() const
-{
-    switch (enum_) {
-        case Error::Ok: return "Ok";
-        case Error::Fail: return "Fail";
-        case Error::Timeout: return "Timeout";
-        case Error::Internal: return "Internal";
-        case Error::InvalidParam: return "InvalidParam";
-    }
-    return nullptr;
-}
+// template<>
+// constexpr const char* mxl::enum_t<Error>::name() const
+// {
+    // switch (enum_) {
+        // case Error::Ok: return "Ok";
+        // case Error::Fail: return "Fail";
+        // case Error::Timeout: return "Timeout";
+        // case Error::Internal: return "Internal";
+        // case Error::InvalidParam: return "InvalidParam";
+    // }
+    // return nullptr;
+// }
 
 /***************************************************************************************/
 
@@ -234,20 +234,20 @@ int main()
     constexpr auto _eva = mxl::enum_t<Error>::values::array();
     constexpr mxl::enum_t<Error>::values _error_values;
 
-    static_assert(_iee == false, "");
-    static_assert(_iev == false, "");
-    static_assert(_iec == false, "");
-    static_assert(_iep == false, "");
-    static_assert(_ien == false, "");
-    static_assert(_error_values.min() == Error::Timeout, "");
-    static_assert(_error_values()[0] == Error::Timeout, "");
-    static_assert(_error_values()[1] == Error::InvalidParam, "");
-    static_assert(_error_values()[2] == Error::Ok, "");
-    static_assert(_error_values()[3] == Error::Fail, "");
-    static_assert(_error_values()[4] == Error::Internal, "");
-    static_assert(_error_values.max() == Error::Internal, "");
+    // static_assert(_iee == false, "");
+    // static_assert(_iev == false, "");
+    // static_assert(_iec == false, "");
+    // static_assert(_iep == false, "");
+    // static_assert(_ien == false, "");
+    // static_assert(_error_values.min() == Error::Timeout, "");
+    // static_assert(_error_values()[0] == Error::Timeout, "");
+    // static_assert(_error_values()[1] == Error::InvalidParam, "");
+    // static_assert(_error_values()[2] == Error::Ok, "");
+    // static_assert(_error_values()[3] == Error::Fail, "");
+    // static_assert(_error_values()[4] == Error::Internal, "");
+    // static_assert(_error_values.max() == Error::Internal, "");
 
-    static_assert(_evc == 5, "");
+    // static_assert(_evc == 5, "");
 
     std::cout << "=== Error ===" << '\n';
 
