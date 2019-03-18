@@ -89,6 +89,13 @@ class enum_t final {
     enum_type enum_;
 };
 
+template<typename E>
+constexpr const char* enum_t<E>::name() const
+{
+    static_assert("Enum name function not implemented");
+    return nullptr;
+}
+
 /**
  * \brief Parse an enum to the Enum convenience class.
  * \param enumerator Enum value.
@@ -210,8 +217,70 @@ class enum_t<E>::values final {
     static constexpr mxl_enum_type min() { return array_.front(); }
     static constexpr mxl_enum_type max() { return array_.back(); }
 
-    constexpr operator array_type() { return array_; }
-    constexpr array_type operator()() { return array_; }
+    constexpr operator array_type() const { return array_; }
+    constexpr array_type operator()() const { return array_; }
+};
+
+/***************************************************************************************/
+
+namespace internal {
+
+template<typename E, std::size_t S>
+constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
+{
+    if (S <= 1)
+        return true;
+    for (auto i = a.begin() + 1; i != a.end(); ++i)
+        if (i->value() - 1 != (i - 1)->value())
+            return false;
+    return true;
+}
+
+template<typename E, std::size_t S>
+constexpr auto is_enum_positive(const std::array<mxl::enum_t<E>, S>& a)
+{
+    if (S == 0)
+        return false;
+    for (auto i = a.begin(); i != a.end(); ++i)
+        if (i->value() < 0)
+            return false;
+    return true;
+}
+
+template<typename E, std::size_t S>
+constexpr auto is_enum_negative(const std::array<mxl::enum_t<E>, S>& a)
+{
+    if (S == 0)
+        return false;
+    for (auto i = a.begin(); i != a.end(); ++i)
+        if (i->value() > 0)
+            return false;
+    return true;
+}
+
+} /* namespace internal */
+
+template<typename E>
+struct is_enum_empty {
+    static constexpr const bool value = (mxl::enum_t<E>::values::array().size() == 0);
+};
+
+template<typename E>
+struct is_enum_contiguous {
+    static constexpr const bool value =
+        internal::is_enum_contiguous(mxl::enum_t<E>::values::array());
+};
+
+template<typename E>
+struct is_enum_positive {
+    static constexpr const bool value =
+        internal::is_enum_positive(mxl::enum_t<E>::values::array());
+};
+
+template<typename E>
+struct is_enum_negative {
+    static constexpr const bool value =
+        internal::is_enum_negative(mxl::enum_t<E>::values::array());
 };
 
 } /* namespace mxl */

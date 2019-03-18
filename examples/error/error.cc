@@ -39,28 +39,6 @@ constexpr const char* mxl::enum_t<Error>::name() const
 
 /***************************************************************************************/
 
-// Error function1(int x)
-// {
-//     return static_cast<Error>(-(-x % 5));
-// }
-
-// mxl::Enum<Error> function2(int y)
-// {
-//     return static_cast<Error>(-(-y % 5));
-// }
-
-// Error foo(Error err)
-// {
-//     return static_cast<Error>(99);
-// }
-
-// Error foo(mxl::Enum<Error> err)
-// {
-//     return err;
-// }
-
-/***************************************************************************************/
-
 /*
 // Prototype 1
 template<
@@ -238,18 +216,38 @@ int main()
 
     // std::cout << "foo: " << mxl::make_enum(foo(Error::Ok)).name() << std::endl;
 
+    constexpr auto _iee = mxl::is_enum_empty<Error>::value;
     constexpr auto _iev = mxl::is_enum_valid<Error, 5>::value;
+    constexpr auto _iec = mxl::is_enum_contiguous<Error>::value;
+    constexpr auto _iep = mxl::is_enum_positive<Error>::value;
+    constexpr auto _ien = mxl::is_enum_negative<Error>::value;
 
     constexpr auto _e1 = mxl::enum_t<Error>(Error::Ok);
     constexpr auto _e2 = mxl::make_enum(Error::Ok);
-    mxl::enum_t<Error> _e3 = mxl::enum_t(Error::Timeout);
-    mxl::enum_t<Error> _e4 = mxl::make_enum(Error::Timeout);
-    mxl::enum_t<Error> _e5{ Error::Fail };
+    constexpr mxl::enum_t<Error> _e3 = mxl::enum_t(Error::Timeout);
+    constexpr mxl::enum_t<Error> _e4 = mxl::make_enum(Error::Timeout);
+    constexpr mxl::enum_t<Error> _e5{ Error::Fail };
 
     constexpr auto _emin = mxl::enum_t<Error>::values::min();
     constexpr auto _emax = mxl::enum_t<Error>::values::max();
     constexpr auto _evc = mxl::enum_t<Error>::values::count();
     constexpr auto _eva = mxl::enum_t<Error>::values::array();
+    constexpr mxl::enum_t<Error>::values _error_values;
+
+    static_assert(_iee == false, "");
+    static_assert(_iev == false, "");
+    static_assert(_iec == false, "");
+    static_assert(_iep == false, "");
+    static_assert(_ien == false, "");
+    static_assert(_error_values.min() == Error::Timeout, "");
+    static_assert(_error_values()[0] == Error::Timeout, "");
+    static_assert(_error_values()[1] == Error::InvalidParam, "");
+    static_assert(_error_values()[2] == Error::Ok, "");
+    static_assert(_error_values()[3] == Error::Fail, "");
+    static_assert(_error_values()[4] == Error::Internal, "");
+    static_assert(_error_values.max() == Error::Internal, "");
+
+    static_assert(_evc == 5, "");
 
     std::cout << "=== Error ===" << '\n';
 
@@ -260,6 +258,9 @@ int main()
     std::cout << "Values:" << '\n';
     for (auto e : _eva)
         std::cout << "  " << e.name() << ": " << (int) e.value() << '\n';
+    std::cout << '\n';
+
+    std::cout << "Contiguous: " << std::boolalpha << _iec << '\n';
 
     std::cout << std::endl;
     return 0;
