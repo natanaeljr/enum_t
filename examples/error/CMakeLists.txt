@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(simple)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(MXL_ENUM_INCLUDE_DIR ../../include)
 include_directories(${MXL_ENUM_INCLUDE_DIR})

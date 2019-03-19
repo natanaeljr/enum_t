@@ -216,10 +216,34 @@ inline constexpr auto make_enum_array()
 /***************************************************************************************/
 #elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
 
-template<typename E>
+// make a array_push_front_or_back (choose by sign)
+
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value, std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return make_enum_array14_impl<E, V + (V < 0 ? 1 : -1)>(array_push_front(a, V));
+}
+
+template<typename E, typename std::enable_if<
+                         std::is_signed<typename std::underlying_type<E>::type>::value,
+                         size_t>::type D = 0>
 constexpr auto make_enum_array14()
 {
-    return std::array<mxl::enum<E>, 0>{};
+    using enum_numeric = std::numeric_limits<char>;
+    return array_append(
+        make_enum_array14_impl<E, enum_numeric::min()>(std::array<mxl::enum_t<E>, 0>{}),
+        make_enum_array14_impl<E, enum_numeric::max()>(std::array<mxl::enum_t<E>, 0>{}));
+}
+
+template<typename E, typename std::enable_if<
+                         std::is_unsigned<typename std::underlying_type<E>::type>::value,
+                         void>::type D = 0>
+constexpr auto make_enum_array14()
+{
+    using enum_numeric = std::numeric_limits<unsigned char>;
+    return make_enum_array14_impl<E, enum_numeric::max()>(
+        std::array<mxl::enum_t<E>, 0>{});
 }
 
 template<typename E>
