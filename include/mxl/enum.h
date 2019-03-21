@@ -216,13 +216,53 @@ inline constexpr auto make_enum_array()
 /***************************************************************************************/
 #elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
 
-// make a array_push_front_or_back (choose by sign)
-
 template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value, std::size_t>::type S>
+         typename std::enable_if<!is_enum_valid<E, V>::value && (V == 0 || V == -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
-    return make_enum_array14_impl<E, V + (V < 0 ? 1 : -1)>(array_push_front(a, V));
+    return a;
+}
+
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value && (V == -1), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return array_push_back(a, V);
+}
+
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value && (V == 0), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return array_push_front(a, V);
+}
+
+template<typename E, int V,
+         typename std::enable_if<!is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return make_enum_array14_impl<E, V + 1>(a);
+}
+
+template<typename E, int V,
+         typename std::enable_if<!is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return make_enum_array14_impl<E, V - 1>(a);
+}
+
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return make_enum_array14_impl<E, V + 1>(array_push_back(a, V));
+}
+
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+{
+    return make_enum_array14_impl<E, V - 1>(array_push_front(a, V));
 }
 
 template<typename E, typename std::enable_if<
