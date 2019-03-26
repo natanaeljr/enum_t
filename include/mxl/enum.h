@@ -227,14 +227,14 @@ template<typename E, int V,
          typename std::enable_if<is_enum_valid<E, V>::value && (V == -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
-    return array_push_back(a, V);
+    return array_push_back(a, mxl::enum_t<E>(E(V)));
 }
 
 template<typename E, int V,
          typename std::enable_if<is_enum_valid<E, V>::value && (V == 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
-    return array_push_front(a, V);
+    return array_push_front(a, mxl::enum_t<E>(E(V)));
 }
 
 template<typename E, int V,
@@ -243,6 +243,11 @@ constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return make_enum_array14_impl<E, V + 1>(a);
 }
+
+/* Forward-declaration */
+template<typename E, int V,
+         typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a);
 
 template<typename E, int V,
          typename std::enable_if<!is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
@@ -255,14 +260,14 @@ template<typename E, int V,
          typename std::enable_if<is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
-    return make_enum_array14_impl<E, V + 1>(array_push_back(a, V));
+    return make_enum_array14_impl<E, V + 1>(array_push_back(a, mxl::enum_t<E>(E(V))));
 }
 
 template<typename E, int V,
          typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
-    return make_enum_array14_impl<E, V - 1>(array_push_front(a, V));
+    return make_enum_array14_impl<E, V - 1>(array_push_front(a, mxl::enum_t<E>(E(V))));
 }
 
 template<typename E, typename std::enable_if<
@@ -338,7 +343,7 @@ constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
         return false;
     else if (S == 1)
         return true;
-    for (auto i = a.begin() + 1; i != a.end(); ++i)
+    for (auto i = &a.front() + 1; i != &a.back(); ++i)
         if (i->value() - 1 != (i - 1)->value())
             return false;
     return true;
@@ -349,7 +354,7 @@ constexpr auto is_enum_positive(const std::array<mxl::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
-    for (auto i = a.begin(); i != a.end(); ++i)
+    for (auto i = &a.front(); i != &a.back(); ++i)
         if (i->value() < 0)
             return false;
     return true;
@@ -360,7 +365,7 @@ constexpr auto is_enum_negative(const std::array<mxl::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
-    for (auto i = a.begin(); i != a.end(); ++i)
+    for (auto i = &a.front(); i != &a.back(); ++i)
         if (i->value() > 0)
             return false;
     return true;
