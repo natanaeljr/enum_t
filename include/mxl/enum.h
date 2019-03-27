@@ -71,13 +71,19 @@ class enum_t final {
      * \remark This must be implemented for each enum type.
      * \return Enum detail message in C string style.
      */
-    constexpr const char* message() const { return "(undefined enum message)"; }
+    constexpr const char* what() const { return "(undefined)"; }
 
     /**
      * \brief Implicit convertion to the enum type.
      * \return Enum element.
      */
     constexpr operator enum_type() const { return enum_; }
+
+    /**
+     * \brief Explicit convertion to the enum value.
+     * \return Enum value.
+     */
+    explicit constexpr operator underlying_type() const { return value(); }
 
     /**
      * Enumeration's value information interface.
@@ -217,54 +223,62 @@ inline constexpr auto make_enum_array()
 #elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
 
 template<typename E, int V,
-         typename std::enable_if<!is_enum_valid<E, V>::value && (V == 0 || V == -1), std::size_t>::type S>
+         typename std::enable_if<!is_enum_valid<E, V>::value && (V == 0 || V == -1),
+                                 std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return a;
 }
 
-template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value && (V == -1), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<is_enum_valid<E, V>::value && (V == -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return array_push_back(a, mxl::enum_t<E>(E(V)));
 }
 
-template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value && (V == 0), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<is_enum_valid<E, V>::value && (V == 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return array_push_front(a, mxl::enum_t<E>(E(V)));
 }
 
-template<typename E, int V,
-         typename std::enable_if<!is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<!is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return make_enum_array14_impl<E, V + 1>(a);
 }
 
 /* Forward-declaration */
-template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a);
 
-template<typename E, int V,
-         typename std::enable_if<!is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<!is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return make_enum_array14_impl<E, V - 1>(a);
 }
 
-template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return make_enum_array14_impl<E, V + 1>(array_push_back(a, mxl::enum_t<E>(E(V))));
 }
 
-template<typename E, int V,
-         typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
+template<
+    typename E, int V,
+    typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
 constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
 {
     return make_enum_array14_impl<E, V - 1>(array_push_front(a, mxl::enum_t<E>(E(V))));
@@ -328,6 +342,7 @@ class enum_t<E>::values final {
 
     constexpr operator array_type() const { return array_; }
     constexpr array_type operator()() const { return array_; }
+    constexpr mxl_enum_type operator[](size_type i) const { return array_[i]; }
 };
 
 /***************************************************************************************/
@@ -343,30 +358,30 @@ constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
         return false;
     else if (S == 1)
         return true;
-    for (auto i = &a.front() + 1; i != &a.back(); ++i)
-        if (i->value() - 1 != (i - 1)->value())
+    for (std::size_t i = 1; i != S; ++i)
+        if (a[i].value() - 1 != a[i - 1].value())
             return false;
     return true;
 }
 
 template<typename E, std::size_t S>
-constexpr auto is_enum_positive(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto is_enum_zpositive(const std::array<mxl::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
-    for (auto i = &a.front(); i != &a.back(); ++i)
-        if (i->value() < 0)
+    for (std::size_t i = 0; i != S; ++i)
+        if (a[i].value() < 0)
             return false;
     return true;
 }
 
 template<typename E, std::size_t S>
-constexpr auto is_enum_negative(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto is_enum_znegative(const std::array<mxl::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
-    for (auto i = &a.front(); i != &a.back(); ++i)
-        if (i->value() > 0)
+    for (std::size_t i = 0; i != S; ++i)
+        if (a[i].value() > 0)
             return false;
     return true;
 }
@@ -388,15 +403,15 @@ struct is_enum_contiguous {
 };
 
 template<typename E>
-struct is_enum_positive {
+struct is_enum_zpositive {
     static constexpr const bool value =
-        internal::is_enum_positive(mxl::enum_t<E>::values::array());
+        internal::is_enum_zpositive(mxl::enum_t<E>::values::array());
 };
 
 template<typename E>
-struct is_enum_negative {
+struct is_enum_znegative {
     static constexpr const bool value =
-        internal::is_enum_negative(mxl::enum_t<E>::values::array());
+        internal::is_enum_znegative(mxl::enum_t<E>::values::array());
 };
 
 } /* namespace mxl */

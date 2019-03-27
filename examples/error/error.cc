@@ -44,8 +44,8 @@ int main()
     constexpr auto _iee = mxl::is_enum_empty<Error>::value;
     constexpr auto _iev = mxl::is_enum_valid<Error, 5>::value;
     constexpr auto _iec = mxl::is_enum_contiguous<Error>::value;
-    constexpr auto _iep = mxl::is_enum_positive<Error>::value;
-    constexpr auto _ien = mxl::is_enum_negative<Error>::value;
+    constexpr auto _iep = mxl::is_enum_zpositive<Error>::value;
+    constexpr auto _ien = mxl::is_enum_znegative<Error>::value;
 
     constexpr auto _e1 = mxl::enum_t<Error>(Error::Ok);
     constexpr auto _e2 = mxl::make_enum(Error::Ok);
@@ -65,11 +65,11 @@ int main()
     static_assert(_iep == false, "");
     static_assert(_ien == false, "");
     static_assert(_error_values.min() == Error::InvalidParam, "");
-    static_assert(_error_values()[0] == Error::InvalidParam, "");
-    static_assert(_error_values()[1] == Error::Timeout, "");
-    static_assert(_error_values()[2] == Error::Ok, "");
-    static_assert(_error_values()[3] == Error::Fail, "");
-    static_assert(_error_values()[4] == Error::Internal, "");
+    static_assert(_error_values[0] == Error::InvalidParam, "");
+    static_assert(_error_values[1] == Error::Timeout, "");
+    static_assert(_error_values[2] == Error::Ok, "");
+    static_assert(_error_values[3] == Error::Fail, "");
+    static_assert(_error_values[4] == Error::Internal, "");
     static_assert(_error_values.max() == Error::Internal, "");
 
     static_assert(_evc == 5, "");
