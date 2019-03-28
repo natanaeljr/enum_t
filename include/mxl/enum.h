@@ -172,44 +172,56 @@ constexpr auto array_push_back(const std::array<T, S>& a, T x)
     return array_push_back_impl(a, x, std::make_index_sequence<S>{});
 }
 
+template<typename U, typename T, size_t S, size_t... I>
+constexpr auto array_parse_impl(const std::array<T, S>& a, std::index_sequence<I...>)
+{
+    return std::array<U, S>{ U(a[I])... };
+}
+
+template<typename U, typename T, size_t S>
+constexpr auto array_parse(const std::array<T, S>& a)
+{
+    return array_parse_impl<U>(a, std::make_index_sequence<S>{});
+}
+
 /***************************************************************************************/
 
 #if (__cplusplus >= 201700L)
 
 template<typename E, typename std::underlying_type<E>::type V, size_t S>
-constexpr auto make_enum_array17_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array17_impl(
+    const std::array<typename std::underlying_type<E>, S>& a)
 {
     if constexpr (V != 0 && V != -1) {
         if constexpr (!is_enum_valid<E, V>::value)
             return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(a);
         if constexpr (is_enum_valid<E, V>::value)
             return make_enum_array17_impl<E, V + (V < 0 ? 1 : -1)>(
-                V < 0 ? array_push_back(a, mxl::enum_t<E>(E(V)))
-                      : array_push_front(a, mxl::enum_t<E>(E(V))));
+                V < 0 ? array_push_back(a, V) : array_push_front(a, V));
     }
     else {
         if constexpr (!is_enum_valid<E, V>::value)
             return a;
         else if constexpr (is_enum_valid<E, V>::value)
-            return V < 0 ? array_push_back(a, mxl::enum_t<E>(E(V)))
-                         : array_push_front(a, mxl::enum_t<E>(E(V)));
+            return V < 0 ? array_push_back(a, V) : array_push_front(a, V);
     }
 }
 
 template<typename E>
 constexpr auto make_enum_array17()
 {
-    if constexpr (std::is_signed<typename std::underlying_type<E>::type>::value) {
+    using enum_underlying_t = typename std::underlying_type<E>::type;
+    if constexpr (std::is_signed<enum_underlying_t>::value) {
         using enum_numeric = std::numeric_limits<char>;
         return array_append(make_enum_array17_impl<E, enum_numeric::min()>(
-                                std::array<mxl::enum_t<E>, 0>{}),
+                                std::array<enum_underlying_t, 0>{}),
                             make_enum_array17_impl<E, enum_numeric::max()>(
-                                std::array<mxl::enum_t<E>, 0>{}));
+                                std::array<enum_underlying_t, 0>{}));
     }
     else {
         using enum_numeric = std::numeric_limits<unsigned char>;
         return make_enum_array17_impl<E, enum_numeric::max()>(
-            std::array<mxl::enum_t<E>, 0>{});
+            std::array<enum_underlying_t, 0>{});
     }
 }
 
@@ -321,28 +333,29 @@ inline constexpr auto make_enum_array()
 template<typename E>
 class enum_t<E>::values final {
    private:
-    static constexpr const auto array_ = internal::make_enum_array<E>();
+    static constexpr const auto values_ = internal::make_enum_array<E>();
+    static constexpr const auto enums_ = internal::array_parse<enum_t<E>>(values_);
 
    public:
-    using array_type = decltype(array_);
+    using array_type = decltype(enums_);
     using enum_type = E;
     using mxl_enum_type = enum_t<E>;
     using size_type = typename array_type::size_type;
 
-    static constexpr array_type array() { return array_; }
-    static constexpr size_type count() { return array_.size(); }
+    static constexpr array_type array() { return enums_; }
+    static constexpr size_type count() { return enums_.size(); }
     static constexpr mxl_enum_type min()
     {
-        return count() ? array_.front() : mxl_enum_type{ 0 };
+        return count() ? enums_.front() : mxl_enum_type{ 0 };
     }
     static constexpr mxl_enum_type max()
     {
-        return count() ? array_.back() : mxl_enum_type{ 0 };
+        return count() ? enums_.back() : mxl_enum_type{ 0 };
     }
 
-    constexpr operator array_type() const { return array_; }
-    constexpr array_type operator()() const { return array_; }
-    constexpr mxl_enum_type operator[](size_type i) const { return array_[i]; }
+    constexpr operator array_type() const { return enums_; }
+    constexpr array_type operator()() const { return enums_; }
+    constexpr mxl_enum_type operator[](size_type i) const { return enums_[i]; }
 };
 
 /***************************************************************************************/
