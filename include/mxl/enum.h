@@ -64,7 +64,7 @@ class enum_t final {
      * \remark This must be implemented for each enum type.
      * \return Enum name in C string style.
      */
-    constexpr const char* name() const;
+    constexpr const char* name() const { return nullptr; }
 
     /**
      * \brief  Return a custom message detailing the enumerator.
@@ -94,16 +94,6 @@ class enum_t final {
     /*! Representing enum element */
     enum_type enum_;
 };
-
-/**
- * \brief  Default implemetation for non specialized implementations.
- * \return nullptr
- */
-template<typename E>
-constexpr const char* enum_t<E>::name() const
-{
-    return nullptr;
-}
 
 /**
  * \brief Parse an enum to the Enum convenience class.
