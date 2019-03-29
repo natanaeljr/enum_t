@@ -132,65 +132,65 @@ struct is_enum_valid {
  */
 namespace internal {
 
-template<typename T, size_t S1, size_t S2, size_t... I1, size_t... I2>
+template<typename U, typename T, std::size_t S, std::size_t... I>
+constexpr auto array_parse_impl(const std::array<T, S>& a, std::index_sequence<I...>)
+{
+    return std::array<U, S>{ U(a[I])... };
+}
+
+template<typename U, typename T, std::size_t S>
+constexpr auto array_parse(const std::array<T, S>& a)
+{
+    return array_parse_impl<U>(a, std::make_index_sequence<S>{});
+}
+
+template<typename T, std::size_t S1, std::size_t S2, std::size_t... I1, std::size_t... I2>
 constexpr auto array_append_impl(const std::array<T, S1>& a, const std::array<T, S2>& b,
                                  std::index_sequence<I1...>, std::index_sequence<I2...>)
 {
     return std::array<T, S1 + S2>{ a[I1]..., b[I2]... };
 }
 
-template<typename T, size_t S1, size_t S2>
+template<typename T, std::size_t S1, std::size_t S2>
 constexpr auto array_append(const std::array<T, S1>& a, const std::array<T, S2>& b)
 {
     return array_append_impl(a, b, std::make_index_sequence<S1>{},
                              std::make_index_sequence<S2>{});
 }
 
-template<typename T, size_t S, size_t... I>
+template<typename T, std::size_t S, std::size_t... I>
 constexpr auto array_push_front_impl(const std::array<T, S>& a, T x,
                                      std::index_sequence<I...>)
 {
     return std::array<T, S + 1>{ x, a[I]... };
 }
 
-template<typename T, size_t S>
+template<typename T, std::size_t S>
 constexpr auto array_push_front(const std::array<T, S>& a, T x)
 {
     return array_push_front_impl(a, x, std::make_index_sequence<S>{});
 }
 
-template<typename T, size_t S, size_t... I>
+template<typename T, std::size_t S, std::size_t... I>
 constexpr auto array_push_back_impl(const std::array<T, S>& a, T x,
                                     std::index_sequence<I...>)
 {
     return std::array<T, S + 1>{ a[I]..., x };
 }
 
-template<typename T, size_t S>
+template<typename T, std::size_t S>
 constexpr auto array_push_back(const std::array<T, S>& a, T x)
 {
     return array_push_back_impl(a, x, std::make_index_sequence<S>{});
-}
-
-template<typename U, typename T, size_t S, size_t... I>
-constexpr auto array_parse_impl(const std::array<T, S>& a, std::index_sequence<I...>)
-{
-    return std::array<U, S>{ U(a[I])... };
-}
-
-template<typename U, typename T, size_t S>
-constexpr auto array_parse(const std::array<T, S>& a)
-{
-    return array_parse_impl<U>(a, std::make_index_sequence<S>{});
 }
 
 /***************************************************************************************/
 
 #if (__cplusplus >= 201700L)
 
-template<typename E, typename std::underlying_type<E>::type V, size_t S>
+template<typename E, typename std::underlying_type<E>::type V, std::size_t S>
 constexpr auto make_enum_array17_impl(
-    const std::array<typename std::underlying_type<E>, S>& a)
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
     if constexpr (V != 0 && V != -1) {
         if constexpr (!is_enum_valid<E, V>::value)
@@ -234,77 +234,87 @@ inline constexpr auto make_enum_array()
 /***************************************************************************************/
 #elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
 
-template<typename E, int V,
+template<typename E, typename std::underlying_type<E>::type V,
          typename std::enable_if<!is_enum_valid<E, V>::value && (V == 0 || V == -1),
                                  std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
     return a;
 }
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<is_enum_valid<E, V>::value && (V == -1), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
-    return array_push_back(a, mxl::enum_t<E>(E(V)));
+    return array_push_back(a, V);
 }
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<is_enum_valid<E, V>::value && (V == 0), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
-    return array_push_front(a, mxl::enum_t<E>(E(V)));
+    return array_push_front(a, V);
 }
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<!is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
     return make_enum_array14_impl<E, V + 1>(a);
 }
 
 /* Forward-declaration */
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a);
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a);
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<!is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
     return make_enum_array14_impl<E, V - 1>(a);
 }
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<is_enum_valid<E, V>::value && (V < -1), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
-    return make_enum_array14_impl<E, V + 1>(array_push_back(a, mxl::enum_t<E>(E(V))));
+    return make_enum_array14_impl<E, V + 1>(array_push_back(a, V));
 }
 
 template<
-    typename E, int V,
+    typename E, typename std::underlying_type<E>::type V,
     typename std::enable_if<is_enum_valid<E, V>::value && (V > 0), std::size_t>::type S>
-constexpr auto make_enum_array14_impl(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto make_enum_array14_impl(
+    const std::array<typename std::underlying_type<E>::type, S>& a)
 {
-    return make_enum_array14_impl<E, V - 1>(array_push_front(a, mxl::enum_t<E>(E(V))));
+    return make_enum_array14_impl<E, V - 1>(array_push_front(a, V));
 }
 
 template<typename E, typename std::enable_if<
                          std::is_signed<typename std::underlying_type<E>::type>::value,
-                         size_t>::type D = 0>
+                         std::size_t>::type D = 0>
 constexpr auto make_enum_array14()
 {
     using enum_numeric = std::numeric_limits<char>;
-    return array_append(
-        make_enum_array14_impl<E, enum_numeric::min()>(std::array<mxl::enum_t<E>, 0>{}),
-        make_enum_array14_impl<E, enum_numeric::max()>(std::array<mxl::enum_t<E>, 0>{}));
+    using enum_underlying_t = typename std::underlying_type<E>::type;
+    return array_append(make_enum_array14_impl<E, enum_numeric::min()>(
+                            std::array<enum_underlying_t, 0>{}),
+                        make_enum_array14_impl<E, enum_numeric::max()>(
+                            std::array<enum_underlying_t, 0>{}));
 }
 
 template<typename E, typename std::enable_if<
@@ -314,7 +324,7 @@ constexpr auto make_enum_array14()
 {
     using enum_numeric = std::numeric_limits<unsigned char>;
     return make_enum_array14_impl<E, enum_numeric::max()>(
-        std::array<mxl::enum_t<E>, 0>{});
+        std::array<typename std::underlying_type<E>::type, 0>{});
 }
 
 template<typename E>
@@ -333,34 +343,34 @@ inline constexpr auto make_enum_array()
 template<typename E>
 class enum_t<E>::values final {
    private:
-    static constexpr const auto values_ = internal::make_enum_array<E>();
-    static constexpr const auto enums_ = internal::array_parse<enum_t<E>>(values_);
+    static constexpr const auto array_ =
+        internal::array_parse<enum_t<E>>(internal::make_enum_array<E>());
 
    public:
-    using array_type = decltype(enums_);
+    using array_type = decltype(array_);
     using enum_type = E;
     using mxl_enum_type = enum_t<E>;
     using size_type = typename array_type::size_type;
 
-    static constexpr array_type array() { return enums_; }
-    static constexpr size_type count() { return enums_.size(); }
+    static constexpr array_type array() { return array_; }
+    static constexpr size_type count() { return array_.size(); }
     static constexpr mxl_enum_type min()
     {
-        return count() ? enums_.front() : mxl_enum_type{ 0 };
+        return count() ? array_.front() : mxl_enum_type{ 0 };
     }
     static constexpr mxl_enum_type max()
     {
-        return count() ? enums_.back() : mxl_enum_type{ 0 };
+        return count() ? array_.back() : mxl_enum_type{ 0 };
     }
 
-    constexpr operator array_type() const { return enums_; }
-    constexpr array_type operator()() const { return enums_; }
-    constexpr mxl_enum_type operator[](size_type i) const { return enums_[i]; }
+    constexpr operator array_type() const { return array_; }
+    constexpr array_type operator()() const { return array_; }
+    constexpr mxl_enum_type operator[](size_type i) const { return array_[i]; }
 };
 
 /***************************************************************************************/
 /**
- * More Library Internals
+ * Library Internals
  */
 namespace internal {
 
