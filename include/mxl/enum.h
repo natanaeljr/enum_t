@@ -71,7 +71,7 @@ class enum_t final {
      * \remark This must be implemented for each enum type.
      * \return Enum detail message in C string style.
      */
-    constexpr const char* what() const { return "(undefined)"; }
+    constexpr const char* what() const { return nullptr; }
 
     /**
      * \brief Implicit convertion to the enum type.
@@ -86,7 +86,7 @@ class enum_t final {
     explicit constexpr operator underlying_type() const { return value(); }
 
     /**
-     * Enumeration's value information interface.
+     * Enumeration's values interface.
      */
     class values;
 
@@ -401,9 +401,10 @@ constexpr auto is_enum_znegative(const std::array<mxl::enum_t<E>, S>& a)
 
 } /* namespace internal */
 
-/**
+/*
  * Logical Traits
  */
+
 template<typename E>
 struct is_enum_empty {
     static constexpr const bool value = (mxl::enum_t<E>::values::count() == 0);

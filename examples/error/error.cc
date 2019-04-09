@@ -1,5 +1,5 @@
 /**
- * \file   simple.cc
+ * \file   error.cc
  * \author Natanael Josué Rabello
  * \brief  Simple example.
  * \date   2019-03-10
