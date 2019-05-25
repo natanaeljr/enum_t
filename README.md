@@ -22,6 +22,6 @@ so there is no run-time cost when using `enum_t`, really!
 - [X] Maximum and minimum values of the enumeration.
 - [X] Constexpr **iterable array** of the enumerator sorted by value, with `enum_t<E>::values`
 - [X] Implicit interchangeable convertion from `enum` to `enum_t<E>`, and vice-versa.
-- [X] **Type traits**: `is_enum_valid`, `is_enum_contiguous`, `is_enum_znegative`, `is_enum_zpositive`.
+- [X] **Enum traits**: `is_enum_valid`, `is_enum_contiguous`, `is_enum_znegative`, `is_enum_zpositive`.
 - [X] Enumerator's meaning with `enum_t<E>::what()`.
 

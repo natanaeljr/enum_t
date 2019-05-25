@@ -6,8 +6,8 @@
  * \copyright Copyright (c) 2019
  */
 
-#ifndef INCLUDE_NJR_ENUM_H_
-#define INCLUDE_NJR_ENUM_H_
+#ifndef INCLUDE_NJR_ENUM_T_H_
+#define INCLUDE_NJR_ENUM_T_H_
 
 #if (__cplusplus < 201402L)
 #error "njr::enum_t only supported since C++14"
@@ -336,23 +336,23 @@ class enum_t<E>::values final {
    public:
     using array_type = decltype(array_);
     using enum_type = E;
-    using mxl_enum_type = enum_t<E>;
+    using njr_enum_type = enum_t<E>;
     using size_type = typename array_type::size_type;
 
     static constexpr array_type array() { return array_; }
     static constexpr size_type count() { return array_.size(); }
-    static constexpr mxl_enum_type min()
+    static constexpr njr_enum_type min()
     {
-        return count() ? array_.front() : mxl_enum_type{ 0 };
+        return count() ? array_.front() : njr_enum_type{ 0 };
     }
-    static constexpr mxl_enum_type max()
+    static constexpr njr_enum_type max()
     {
-        return count() ? array_.back() : mxl_enum_type{ 0 };
+        return count() ? array_.back() : njr_enum_type{ 0 };
     }
 
     constexpr operator array_type() const { return array_; }
     constexpr array_type operator()() const { return array_; }
-    constexpr mxl_enum_type operator[](size_type i) const { return array_[i]; }
+    constexpr njr_enum_type operator[](size_type i) const { return array_[i]; }
 };
 
 /***************************************************************************************/
@@ -398,10 +398,10 @@ constexpr auto is_enum_znegative(const std::array<njr::enum_t<E>, S>& a)
 
 } /* namespace internal */
 
+/***************************************************************************************/
 /*
- * Logical Traits
+ * Enum Traits
  */
-
 template<typename E>
 struct is_enum_empty {
     static constexpr const bool value = (njr::enum_t<E>::values::count() == 0);
@@ -427,4 +427,4 @@ struct is_enum_znegative {
 
 } /* namespace njr */
 
-#endif /* INCLUDE_NJR_ENUM_H_ */
+#endif /* INCLUDE_NJR_ENUM_T_H_ */
