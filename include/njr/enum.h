@@ -1,16 +1,16 @@
 /**
  * \file   enum.h
- * \author Natanael Josué Rabello
- * \brief  MXL Enum.
+ * \author Natanael Josue Rabello
+ * \brief  Enum type.
  * \date   2019-03-10
  * \copyright Copyright (c) 2019
  */
 
-#ifndef INCLUDE_MXL_ENUM_H_
-#define INCLUDE_MXL_ENUM_H_
+#ifndef INCLUDE_NJR_ENUM_H_
+#define INCLUDE_NJR_ENUM_H_
 
-#if (__cplusplus < 201400L)
-#error "MXL Enum only supported since C++14"
+#if (__cplusplus < 201402L)
+#error "njr::enum_t only supported since C++14"
 #endif
 
 #include <type_traits>
@@ -18,10 +18,7 @@
 #include <array>
 
 /***************************************************************************************/
-/**
- * Minimum Extension Library
- */
-namespace mxl {
+namespace njr {
 
 /**
  * Enumerator class.
@@ -113,7 +110,7 @@ constexpr enum_t<E> make_enum(E enumerator)
  */
 template<typename E, typename std::underlying_type<E>::type V>
 struct is_enum_valid {
-    static constexpr const bool value = mxl::enum_t<E>(E(V)).name() != nullptr;
+    static constexpr const bool value = njr::enum_t<E>(E(V)).name() != nullptr;
 };
 
 /***************************************************************************************/
@@ -176,7 +173,7 @@ constexpr auto array_push_back(const std::array<T, S>& a, T x)
 
 /***************************************************************************************/
 
-#if (__cplusplus >= 201700L)
+#if (__cplusplus >= 201703L)
 
 template<typename E, typename std::underlying_type<E>::type V, std::size_t S>
 constexpr auto make_enum_array17_impl(
@@ -222,7 +219,7 @@ inline constexpr auto make_enum_array()
 }
 
 /***************************************************************************************/
-#elif (__cplusplus >= 201400L) /* #if (__cplusplus >= 201700L) */
+#elif (__cplusplus >= 201402L) /* #if (__cplusplus >= 201703L) */
 
 template<typename E, typename std::underlying_type<E>::type V,
          typename std::enable_if<!is_enum_valid<E, V>::value && (V == 0 || V == -1),
@@ -324,7 +321,7 @@ inline constexpr auto make_enum_array()
 }
 
 /***************************************************************************************/
-#endif                         /* #elif (__cplusplus >= 201400L) */
+#endif                         // #elif (__cplusplus >= 201402L)
 
 } /* namespace internal */
 
@@ -365,7 +362,7 @@ class enum_t<E>::values final {
 namespace internal {
 
 template<typename E, std::size_t S>
-constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto is_enum_contiguous(const std::array<njr::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
@@ -378,7 +375,7 @@ constexpr auto is_enum_contiguous(const std::array<mxl::enum_t<E>, S>& a)
 }
 
 template<typename E, std::size_t S>
-constexpr auto is_enum_zpositive(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto is_enum_zpositive(const std::array<njr::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
@@ -389,7 +386,7 @@ constexpr auto is_enum_zpositive(const std::array<mxl::enum_t<E>, S>& a)
 }
 
 template<typename E, std::size_t S>
-constexpr auto is_enum_znegative(const std::array<mxl::enum_t<E>, S>& a)
+constexpr auto is_enum_znegative(const std::array<njr::enum_t<E>, S>& a)
 {
     if (S == 0)
         return false;
@@ -407,27 +404,27 @@ constexpr auto is_enum_znegative(const std::array<mxl::enum_t<E>, S>& a)
 
 template<typename E>
 struct is_enum_empty {
-    static constexpr const bool value = (mxl::enum_t<E>::values::count() == 0);
+    static constexpr const bool value = (njr::enum_t<E>::values::count() == 0);
 };
 
 template<typename E>
 struct is_enum_contiguous {
     static constexpr const bool value =
-        internal::is_enum_contiguous(mxl::enum_t<E>::values::array());
+        internal::is_enum_contiguous(njr::enum_t<E>::values::array());
 };
 
 template<typename E>
 struct is_enum_zpositive {
     static constexpr const bool value =
-        internal::is_enum_zpositive(mxl::enum_t<E>::values::array());
+        internal::is_enum_zpositive(njr::enum_t<E>::values::array());
 };
 
 template<typename E>
 struct is_enum_znegative {
     static constexpr const bool value =
-        internal::is_enum_znegative(mxl::enum_t<E>::values::array());
+        internal::is_enum_znegative(njr::enum_t<E>::values::array());
 };
 
-} /* namespace mxl */
+} /* namespace njr */
 
-#endif /* INCLUDE_MXL_ENUM_H_ */
+#endif /* INCLUDE_NJR_ENUM_H_ */

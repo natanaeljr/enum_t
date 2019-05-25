@@ -1,13 +1,13 @@
 /**
  * \file   error.cc
- * \author Natanael Josué Rabello
- * \brief  Simple example.
+ * \author Natanael Josue Rabello
+ * \brief  Example with Error enum.
  * \date   2019-03-10
  * \copyright Copyright (c) 2019
  */
 
 #include <iostream>
-#include "mxl/enum.h"
+#include "njr/enum.h"
 
 /***************************************************************************************/
 
@@ -25,7 +25,7 @@ enum class Error : char {
 /***************************************************************************************/
 
 template<>
-constexpr const char* mxl::enum_t<Error>::name() const
+constexpr const char* njr::enum_t<Error>::name() const
 {
     switch (enum_) {
         case Error::Ok: return "Ok";
@@ -41,23 +41,23 @@ constexpr const char* mxl::enum_t<Error>::name() const
 
 int main()
 {
-    constexpr auto _iee = mxl::is_enum_empty<Error>::value;
-    constexpr auto _iev = mxl::is_enum_valid<Error, 5>::value;
-    constexpr auto _iec = mxl::is_enum_contiguous<Error>::value;
-    constexpr auto _iep = mxl::is_enum_zpositive<Error>::value;
-    constexpr auto _ien = mxl::is_enum_znegative<Error>::value;
+    constexpr auto _iee = njr::is_enum_empty<Error>::value;
+    constexpr auto _iev = njr::is_enum_valid<Error, 5>::value;
+    constexpr auto _iec = njr::is_enum_contiguous<Error>::value;
+    constexpr auto _iep = njr::is_enum_zpositive<Error>::value;
+    constexpr auto _ien = njr::is_enum_znegative<Error>::value;
 
-    constexpr auto _e1 = mxl::enum_t<Error>(Error::Ok);
-    constexpr auto _e2 = mxl::make_enum(Error::Ok);
-    constexpr mxl::enum_t<Error> _e3 = mxl::enum_t<Error>(Error::Timeout);
-    constexpr mxl::enum_t<Error> _e4 = mxl::make_enum(Error::Timeout);
-    constexpr mxl::enum_t<Error> _e5{ Error::Fail };
+    constexpr auto _e1 = njr::enum_t<Error>(Error::Ok);
+    constexpr auto _e2 = njr::make_enum(Error::Ok);
+    constexpr njr::enum_t<Error> _e3 = njr::enum_t<Error>(Error::Timeout);
+    constexpr njr::enum_t<Error> _e4 = njr::make_enum(Error::Timeout);
+    constexpr njr::enum_t<Error> _e5{ Error::Fail };
 
-    constexpr auto _emin = mxl::enum_t<Error>::values::min();
-    constexpr auto _emax = mxl::enum_t<Error>::values::max();
-    constexpr auto _evc = mxl::enum_t<Error>::values::count();
-    constexpr auto _eva = mxl::enum_t<Error>::values::array();
-    constexpr mxl::enum_t<Error>::values _error_values;
+    constexpr auto _emin = njr::enum_t<Error>::values::min();
+    constexpr auto _emax = njr::enum_t<Error>::values::max();
+    constexpr auto _evc = njr::enum_t<Error>::values::count();
+    constexpr auto _eva = njr::enum_t<Error>::values::array();
+    constexpr njr::enum_t<Error>::values _error_values;
 
     static_assert(_iee == false, "");
     static_assert(_iev == false, "");
