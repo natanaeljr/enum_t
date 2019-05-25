@@ -1,4 +1,4 @@
-enum_t
+njr::enum_t
 ======
 
 `enum_t` is a generic enumeration interface for C++14/17, intended for defining a standard
@@ -8,7 +8,7 @@ enum libraries do.
 `enum_t` provides an interface for obtaining information about an `enum` type.
 Unlike other reflection enum libraries, `enum_t` does not rely on macros of any sort to
 define your enumeration, in fact, one of the premisses of this library is to not change the way
-`enums` are defined. What it wants is to maintain the C++ enum declaration style, and still have
+`enum`s are defined. What it wants is to maintain the C++ enum declaration style, and still have
 extended information about the enum.
 
 Another premisse of the library is all the enum information should be available as of compile-time
@@ -21,7 +21,7 @@ so there is no run-time cost when using `enum_t`, really!
 - [X] The **size** (count) of enumerators.
 - [X] Maximum and minimum values of the enumeration.
 - [X] Constexpr **iterable array** of the enumerator sorted by value, with `enum_t<E>::values`
-- [X] Implicit interchangeable convertion from `enum type` to `enum_t<E>`, and vice-versa.
+- [X] Implicit interchangeable convertion from `enum` to `enum_t<E>`, and vice-versa.
 - [X] **Type traits**: `is_enum_valid`, `is_enum_contiguous`, `is_enum_znegative`, `is_enum_zpositive`.
 - [X] Enumerator's meaning with `enum_t<E>::what()`.
 

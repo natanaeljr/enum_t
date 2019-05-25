@@ -7,7 +7,7 @@
  */
 
 #include <iostream>
-#include "njr/enum.h"
+#include "njr/enum_t.h"
 
 /***************************************************************************************/
 
@@ -25,7 +25,7 @@ enum class Error : char {
 /***************************************************************************************/
 
 template<>
-constexpr const char* njr::enum_t<Error>::name() const
+constexpr const char* ::njr::enum_t<Error>::name() const
 {
     switch (enum_) {
         case Error::Ok: return "Ok";
