@@ -15,11 +15,11 @@
  * Error code enumeration
  */
 enum class Error : char {
-    Ok = 0,
-    Fail = 2,
-    Timeout = -1,
-    Internal = 127,
-    InvalidParam = -128,
+    OK = 0,
+    FAIL = 2,
+    TIMEOUT = -1,
+    INTERNAL = 127,
+    INVALID_PARAM = -128,
 };
 
 /***************************************************************************************/
@@ -28,14 +28,48 @@ template<>
 constexpr const char* ::njr::enum_t<Error>::name() const
 {
     switch (enum_) {
-        case Error::Ok: return "Ok";
-        case Error::Fail: return "Fail";
-        case Error::Timeout: return "Timeout";
-        case Error::Internal: return "Internal";
-        case Error::InvalidParam: return "InvalidParam";
+        case Error::OK: return "OK";
+        case Error::FAIL: return "FAIL";
+        case Error::TIMEOUT: return "TIMEOUT";
+        case Error::INTERNAL: return "INTERNAL";
+        case Error::INVALID_PARAM: return "INVALID_PARAM";
     }
     return nullptr;
 }
+
+/***************************************************************************************/
+
+enum class Register : uint8_t {
+    RESET_BIT = 0x1,
+    SLEEP_BIT = 0x2,
+    ENABLE_BIT = 0x4,
+    FIFO_BIT = 0x8,
+    OUTPUT_BIT = 0x10,
+    COMPACT_BIT = 0x20,
+    TRACKING_BIT = 0x40,
+    SMART_BIT = 0x80,
+};
+
+/***************************************************************************************/
+
+template<>
+constexpr const char* ::njr::enum_t<Register>::name() const
+{
+    switch (enum_) {
+        case Register::RESET_BIT: return "RESET_BIT";
+        case Register::SLEEP_BIT: return "SLEEP_BIT";
+        case Register::ENABLE_BIT: return "ENABLE_BIT";
+        case Register::FIFO_BIT: return "FIFO_BIT";
+        case Register::OUTPUT_BIT: return "OUTPUT_BIT";
+        case Register::COMPACT_BIT: return "COMPACT_BIT";
+        case Register::TRACKING_BIT: return "TRACING_BIT";
+        case Register::SMART_BIT: return "SMART_BIT";
+    }
+    return nullptr;
+}
+
+static_assert(::njr::is_enum_bitset<Register>::value,
+              "Register enum requires bitset trait");
 
 /***************************************************************************************/
 
@@ -47,11 +81,11 @@ int main()
     constexpr auto _iep = njr::is_enum_zpositive<Error>::value;
     constexpr auto _ien = njr::is_enum_znegative<Error>::value;
 
-    constexpr auto _e1 = njr::enum_t<Error>(Error::Ok);
-    constexpr auto _e2 = njr::make_enum(Error::Ok);
-    constexpr njr::enum_t<Error> _e3 = njr::enum_t<Error>(Error::Timeout);
-    constexpr njr::enum_t<Error> _e4 = njr::make_enum(Error::Timeout);
-    constexpr njr::enum_t<Error> _e5{ Error::Fail };
+    constexpr auto _e1 = njr::enum_t<Error>(Error::OK);
+    constexpr auto _e2 = njr::make_enum(Error::OK);
+    constexpr njr::enum_t<Error> _e3 = njr::enum_t<Error>(Error::TIMEOUT);
+    constexpr njr::enum_t<Error> _e4 = njr::make_enum(Error::TIMEOUT);
+    constexpr njr::enum_t<Error> _e5{ Error::FAIL };
 
     constexpr auto _emin = njr::enum_t<Error>::values::min();
     constexpr auto _emax = njr::enum_t<Error>::values::max();
@@ -64,13 +98,13 @@ int main()
     static_assert(_iec == false, "");
     static_assert(_iep == false, "");
     static_assert(_ien == false, "");
-    static_assert(_error_values.min() == Error::InvalidParam, "");
-    static_assert(_error_values[0] == Error::InvalidParam, "");
-    static_assert(_error_values[1] == Error::Timeout, "");
-    static_assert(_error_values[2] == Error::Ok, "");
-    static_assert(_error_values[3] == Error::Fail, "");
-    static_assert(_error_values[4] == Error::Internal, "");
-    static_assert(_error_values.max() == Error::Internal, "");
+    static_assert(_error_values.min() == Error::INVALID_PARAM, "");
+    static_assert(_error_values[0] == Error::INVALID_PARAM, "");
+    static_assert(_error_values[1] == Error::TIMEOUT, "");
+    static_assert(_error_values[2] == Error::OK, "");
+    static_assert(_error_values[3] == Error::FAIL, "");
+    static_assert(_error_values[4] == Error::INTERNAL, "");
+    static_assert(_error_values.max() == Error::INTERNAL, "");
 
     static_assert(_evc == 5, "");
 

@@ -15,6 +15,7 @@
 
 #include <type_traits>
 #include <limits>
+#include <bitset>
 #include <array>
 
 /***************************************************************************************/
@@ -396,6 +397,23 @@ constexpr auto is_enum_znegative(const std::array<njr::enum_t<E>, S>& a)
     return true;
 }
 
+template<typename E, std::size_t S>
+constexpr auto is_enum_bitset(const std::array<njr::enum_t<E>, S>& a, bool nonzero)
+{
+    if (S == 0)
+        return false;
+    for (std::size_t i = 0; i != S; ++i) {
+        std::size_t c = 0;
+        for (std::size_t b = 1; b != 1 << 9 && c < 2; b = b << 1)
+            c += (a[i].value() & b) ? 1 : 0;
+        if (c > 1)
+            return false;
+        if (nonzero && c == 0)
+            return false;
+    }
+    return true;
+}
+
 } /* namespace internal */
 
 /***************************************************************************************/
@@ -423,6 +441,18 @@ template<typename E>
 struct is_enum_znegative {
     static constexpr const bool value =
         internal::is_enum_znegative(njr::enum_t<E>::values::array());
+};
+
+template<typename E>
+struct is_enum_bitset {
+    static constexpr const bool value =
+        internal::is_enum_bitset(njr::enum_t<E>::values::array(), true);
+};
+
+template<typename E>
+struct is_enum_zbitset {
+    static constexpr const bool value =
+        internal::is_enum_bitset(njr::enum_t<E>::values::array(), false);
 };
 
 } /* namespace njr */

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(simple)
 
 set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "-g -Werror -Wall -Wno-unused-variable")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
